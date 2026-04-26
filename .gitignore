@@ -29,3 +29,6 @@ Thumbs.db
 coverage/
 test-results/
 playwright-report/
+
+# FSM Runner artifacts (must never enter git history)
+runner-*.log

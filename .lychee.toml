@@ -1,0 +1,26 @@
+# Lychee link-checker configuration.
+# Used by the "Broken-link check" step in .github/workflows/quality.yml.
+# The `links:check` npm script also reads this config for local-dev convenience
+# (requires lychee on PATH — not installed via npm; it is the Rust binary).
+
+max_redirects = 5
+max_concurrency = 4
+no_progress = true
+exclude_mail = true
+
+# Exclude localhost URLs (CI scans source files, not the running site).
+exclude = [
+  "^http://localhost",
+  "^https://localhost",
+]
+
+# Skip these directories when lychee walks the file tree.
+exclude_path = [
+  "node_modules",
+  ".next",
+  ".git",
+]
+
+# Accept standard success codes plus 999 (LinkedIn returns 999 to bots
+# even on valid URLs — prevents false-positive link failures for social links).
+accept = [200, 201, 204, 301, 302, 308, 999]

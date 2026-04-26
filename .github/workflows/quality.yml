@@ -1,0 +1,87 @@
+name: Quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least-privilege: read-only repo access only.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same PR branch to save runner minutes.
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Lighthouse, Pa11y, JSON-LD, robots, sitemap, links
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Surfaces HIGH-severity advisories as a CI warning.
+      # continue-on-error: true — accepted while four known HIGH advisories in devDependencies
+      # are unresolved (lodash, semver, pa11y, pa11y-ci — all devDep/CI-only, no user-input surface).
+      # See README § Known Dependency Advisories for blast-radius justification.
+      # TODO: flip to continue-on-error: false once pa11y-ci is upgraded or replaced.
+      - name: Dependency audit (npm audit --audit-level=high)
+        run: npm audit --audit-level=high
+        continue-on-error: true
+
+      - name: Build
+        run: npm run build
+
+      - name: Start server
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Lighthouse CI
+        run: npm run lhci
+
+      - name: Lighthouse CI (mobile — SEO-critical, Google mobile-first)
+        run: npm run lhci:mobile
+
+      - name: Pa11y accessibility scan (WCAG2AA)
+        run: npm run pa11y
+
+      - name: Validate structured data (JSON-LD)
+        run: npm run validate:structured-data
+
+      - name: Validate robots.txt
+        run: npm run validate:robots
+
+      - name: Validate sitemap.xml
+        run: npm run validate:sitemap
+
+      # Scans source files (TSX + Markdown) for dead links.
+      # lychee is a Rust binary invoked via the official action — no npm install needed.
+      # localhost URLs are excluded via .lychee.toml.
+      - name: Broken-link check (lychee)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --verbose
+            --no-progress
+            --exclude-mail
+            --max-concurrency 4
+            --config .lychee.toml
+            'src/**/*.tsx'
+            '*.md'
+            'README.md'
+          fail: true
+
+  # Future slot: add an "e2e" job here for Playwright (needs: quality, pure addition).

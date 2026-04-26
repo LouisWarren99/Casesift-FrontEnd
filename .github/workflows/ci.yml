@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least-privilege: read-only repo access only.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same PR branch to save runner minutes.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Type-check, Lint, Build, Smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      # Future slot: add "npm run test" here for Vitest (one-line addition, no restructure).
+
+      - name: Start server and smoke check
+        run: |
+          npm run start &
+          npx wait-on http://localhost:3000 --timeout 60000
+          npm run smoke

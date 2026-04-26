@@ -732,7 +732,7 @@ export default function LandingPage() {
                 Sample Output
               </p>
               <h2 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">
-                See What You'll Receive
+                See What You&rsquo;ll Receive
               </h2>
               <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
                 Every assessment delivers a structured report with a predicted
@@ -918,7 +918,7 @@ export default function LandingPage() {
               Built for the Demands of Legal Practice
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-              Your clients' data is sensitive. CaseSift is designed from the
+              Your clients&rsquo; data is sensitive. CaseSift is designed from the
               ground up for the security, privacy, and regulatory standards
               that legal practice demands.
             </p>

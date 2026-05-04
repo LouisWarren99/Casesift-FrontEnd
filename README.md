@@ -100,9 +100,20 @@ If you add a new JSON-LD schema to the layout, add its `@type` to the required-t
 
 ### Future-Proofing
 
-- **Vitest (unit tests):** Add `- run: npm run test` to `ci.yml` between the Lint and Build steps. No restructure required.
-- **Playwright (E2E):** Add an `e2e` job to `quality.yml` with `needs: quality`. No restructure required.
 - **Static export:** If `next.config.ts` adds `output: "export"`, update `lighthouserc.cjs` to use `staticDistDir: "./out"` instead of `startServerUrl`.
+
+### Tests
+
+This repo has two test layers configured:
+
+| Layer | Tool | When | Command (local) | CI workflow |
+|---|---|---|---|---|
+| Unit | Vitest + jsdom + @testing-library/react | On every push and PR | `npm run test:unit` | `ci.yml` "Unit tests" step |
+| E2E | Playwright (chromium-only) | On every push and PR | `npm run test:e2e` (requires `npm run build && npm run start` running) | `quality.yml` `e2e` job |
+
+Unit tests cover SEO-critical surfaces (layout metadata, robots, sitemap, JSON-LD schemas) plus a homepage render smoke test. E2E tests cover page-load, navigation anchors, contact CTA, responsive layout, OG meta tags in `<head>`, and `<h1>` count.
+
+To run a single test locally: `npx vitest run src/test/sitemap.test.ts` or `npx playwright test tests/e2e/og-meta.spec.ts`.
 
 ### Known Dependency Advisories
 

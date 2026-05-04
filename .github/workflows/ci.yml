@@ -41,7 +41,8 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Future slot: add "npm run test" here for Vitest (one-line addition, no restructure).
+      - name: Unit tests
+        run: npm run test:unit
 
       - name: Start server and smoke check
         run: |

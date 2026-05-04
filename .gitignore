@@ -26,9 +26,10 @@ next-env.d.ts
 Thumbs.db
 
 # Testing
-coverage/
-test-results/
-playwright-report/
+/coverage/
+/test-results/
+/playwright-report/
+/.vitest-cache/
 
 # FSM Runner artifacts (must never enter git history)
 runner-*.log

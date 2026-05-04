@@ -1,55 +1,12 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
-import type { WithContext, Organization, WebSite, WebPage } from "schema-dts";
 
 import "./globals.css";
-
-const SITE_URL = "https://casesift.co.uk";
-const SITE_NAME = "CaseSift";
-const ORGANIZATION_ID = `${SITE_URL}#organization`;
-const WEBSITE_ID = `${SITE_URL}#website`;
-
-const organizationSchema: WithContext<Organization> = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "@id": ORGANIZATION_ID,
-  name: SITE_NAME,
-  url: SITE_URL,
-  legalName: "CaseSift Ltd.",
-  email: "info@casesift.co.uk",
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: "GB",
-  },
-  contactPoint: {
-    "@type": "ContactPoint",
-    contactType: "customer service",
-    email: "info@casesift.co.uk",
-    availableLanguage: "en-GB",
-  },
-};
-
-const websiteSchema: WithContext<WebSite> = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "@id": WEBSITE_ID,
-  name: SITE_NAME,
-  url: SITE_URL,
-  inLanguage: "en-GB",
-  publisher: { "@id": ORGANIZATION_ID },
-};
-
-const webpageSchema: WithContext<WebPage> = {
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  "@id": `${SITE_URL}#webpage`,
-  name: "CaseSift — AI Case Assessment for UK Solicitors",
-  url: SITE_URL,
-  description:
-    "AI-powered case assessment for UK solicitors. Upload evidence, receive predicted outcomes, estimated damages, and CFA take-on recommendations within hours. Screen cases faster, reduce risk, free up your team.",
-  inLanguage: "en-GB",
-  isPartOf: { "@id": WEBSITE_ID },
-};
+import {
+  organizationSchema,
+  websiteSchema,
+  webpageSchema,
+} from "./layout-schemas";
 
 export const metadata: Metadata = {
   title: "CaseSift — AI Case Assessment for UK Solicitors",

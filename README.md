@@ -29,6 +29,22 @@ npm run build
 npm run start
 ```
 
+## Contact form
+
+The contact form on the homepage POSTs to `/contact`, a Next.js Route Handler that emails submissions via Resend.
+
+**Required environment variables (Vercel):**
+
+- `RESEND_API_KEY` — get from [https://resend.com/api-keys](https://resend.com/api-keys). Set this in the Vercel project settings before merging; without it, the route returns 500 in production.
+
+**Required Resend setup:**
+
+- Verify the `casesift.co.uk` domain at [https://resend.com/domains](https://resend.com/domains) so the sender `noreply@casesift.co.uk` is authorised. Without domain verification Resend will reject the send.
+
+**Recipient:** `info@casesift.co.uk`. To change the intake address, edit the `to` field in `src/app/contact/route.ts`.
+
+**Spam mitigation:** A hidden honeypot field deflects naive bots (the server returns a silent 200 when tripped). Per-IP rate limiting (5 submissions per minute) bounds abuse.
+
 ## What's Here
 
 - **Landing page** with hero, problem/solution sections, how-it-works, case types, report preview mockup, statistics, pricing, testimonials, trust & security, FAQ, contact
@@ -48,7 +64,7 @@ Two GitHub Actions workflows run on every push to `main` and on every PR. Both a
 | Workflow | File | Target time | Purpose |
 |---|---|---|---|
 | **CI** | `.github/workflows/ci.yml` | < 3 min | Fast functional gates — blocks merge on type/lint/build/smoke failures |
-| **Quality** | `.github/workflows/quality.yml` | < 8 min | SEO / a11y / link gates — Lighthouse, Pa11y, JSON-LD, robots, sitemap, lychee |
+| **Quality** | `.github/workflows/quality.yml` | < 8 min | SEO / a11y / link gates — Lighthouse, axe-core a11y, JSON-LD, robots, sitemap, lychee |
 
 ### CI Gates
 
@@ -60,12 +76,12 @@ Two GitHub Actions workflows run on every push to `main` and on every PR. Both a
 | Smoke | `ci.yml` | Page returned non-200 / missing metadata / missing JSON-LD | `npm run build && npm run start & npm run smoke` |
 | Lighthouse (desktop) | `quality.yml` | A category score dropped below desktop budget | `npm run build && npm run start & npm run lhci` |
 | Lighthouse (mobile) | `quality.yml` | A category score dropped below mobile budget (SEO-critical: Google uses mobile-first indexing) | `npm run build && npm run start & npm run lhci:mobile` |
-| Pa11y | `quality.yml` | A WCAG2AA accessibility violation was found | `npm run build && npm run start & npm run pa11y` |
+| Axe a11y | `quality.yml` | A WCAG2AA accessibility violation was found | `npm run build && npm run start & npm run test:a11y` |
 | Structured data | `quality.yml` | JSON-LD missing or malformed (Organization / WebSite / WebPage) | `npm run build && npm run start & npm run validate:structured-data` |
 | Robots | `quality.yml` | A required `Disallow:` path was removed from robots.txt | `npm run build && npm run start & npm run validate:robots` |
 | Sitemap | `quality.yml` | A disallowed URL leaked into sitemap.xml | `npm run build && npm run start & npm run validate:sitemap` |
 | Broken links | `quality.yml` | A markdown / TSX URL is dead | `lychee` (or click the GH Actions log to see the failing URL) |
-| Dependency audit | `quality.yml` | `npm audit` found HIGH-severity advisories (warning only — `continue-on-error: true` while known advisories are unresolved) | `npm audit --audit-level=high` to inspect; see Known Dependency Advisories below |
+| Dependency audit | `quality.yml` | `npm audit` found HIGH-severity advisories — hard gate, fails the run | `npm audit --audit-level=high` to inspect locally |
 
 ### Lighthouse Budgets
 
@@ -84,9 +100,9 @@ Lighthouse runs 3 times per invocation (`numberOfRuns: 3`) and medians the score
 
 ### Accessibility
 
-Pa11y scans at **WCAG2AA** level (per `fsm-config/project-docs/seo.md`). Any WCAG2AA violation fails the run.
+`@axe-core/playwright` scans at **WCAG2AA** level (per `fsm-config/project-docs/seo.md`). Any WCAG2AA violation fails the run via `npm run test:a11y` (a Playwright spec under `tests/e2e/a11y.spec.ts`).
 
-Lighthouse Accessibility also runs (score-based), using axe-core under the hood. Both gates are kept: Lighthouse for ranking-signal scoring, Pa11y for hard-fail violation gating.
+Lighthouse Accessibility also runs (score-based), using axe-core under the hood. Both gates are kept: Lighthouse for ranking-signal scoring, the dedicated axe spec for hard-fail violation gating.
 
 ### Structured Data (JSON-LD)
 
@@ -115,20 +131,9 @@ Unit tests cover SEO-critical surfaces (layout metadata, robots, sitemap, JSON-L
 
 To run a single test locally: `npx vitest run src/test/sitemap.test.ts` or `npx playwright test tests/e2e/og-meta.spec.ts`.
 
-### Known Dependency Advisories
+### Dependency hygiene
 
-The `npm audit --audit-level=high` step in `quality.yml` currently runs with `continue-on-error: true` because four HIGH-severity advisories exist in devDependencies introduced by this run. These are CI-only toolchain packages — they are never shipped to the production browser bundle and are never exposed to user-controlled input.
-
-| Package | Severity | Advisory | Blast-radius justification |
-|---|---|---|---|
-| `lodash` (≤4.17.23) | HIGH | GHSA-r5fr-rjxr-66jc (code injection via `_.template` keys), GHSA-f23m-r3pf-42rh (prototype pollution in `_.unset`/`_.omit`) | Transitive dep of `pa11y-ci` and `@lhci/cli`. Runs only inside the GitHub Actions CI runner on hardcoded inputs. No user-input surface, no browser exposure. |
-| `semver` (7.0.0–7.5.1) | HIGH | GHSA-c2qf-rxjj-qqgw (RegExp DoS) | Transitive dep of `@lhci/cli` (via lighthouse). Parses only the project's own `package-lock.json` version strings — no attacker-controlled input. |
-| `pa11y` (6.0.0-alpha–6.2.3) | HIGH | Rolls up `lodash` + related transitive advisories | Transitive dep of `pa11y-ci ^3.1.0`. Runs only in CI, not shipped to production. |
-| `pa11y-ci` (≥2.4.0) | HIGH | Rollup of the above transitive advisories reported against the direct dep | Direct devDependency. CI-only, least-privilege runner (`permissions: contents: read`), no user-input exposure. |
-
-**Why these are accepted for now:** All four affected packages are devDependencies that run exclusively inside the GitHub Actions CI runner. Exploitation of the lodash code-injection advisory requires attacker control of a lodash template string; the CI tools use lodash on hardcoded internal inputs only. The workflow uses `permissions: contents: read` (least-privilege), further bounding the realistic blast radius of any CI-runner compromise.
-
-**TODO:** Upgrade or replace `pa11y-ci ^3.1.0` when an upstream fix lands (e.g., upgrade to `pa11y-ci ^4.x` if available, or swap to axe-core CLI). Once all four HIGH advisories are resolved, flip `continue-on-error: true` → `continue-on-error: false` in `quality.yml` to make the audit a hard gate.
+`npm audit --audit-level=high` runs as a hard gate in `quality.yml`. As of run-3, all four previously-known HIGH advisories were resolved by replacing `pa11y-ci` (which transitively pulled in vulnerable `lodash`, `semver`, and `pa11y`) with `@axe-core/playwright`, which has a clean dep tree (`axe-core` only). Any new HIGH advisory will fail CI — investigate and remediate before merge.
 
 ## Contact
 

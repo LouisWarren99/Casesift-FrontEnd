@@ -34,20 +34,31 @@ npm run build
 
 ## Targeted Tests
 
-> No test runner is configured yet (no Vitest, no Jest, no Playwright). If a test framework is added during the run, document it here and the Verifier will start gating on it.
-
-When Vitest is added:
 ```bash
-npx vitest run --reporter=verbose [MODIFIED_FILES]
+# Run the unit-test suite (Vitest, jsdom).
+npm run test:unit
+# Or run a single file:
+npx vitest run src/test/<file>.test.ts
 ```
 
-When Playwright is added:
 ```bash
-npx playwright test
-# Requires `npm run build && npm run start` running, or use Playwright's webServer config
+# Run the Playwright E2E suite (Chromium).
+npm run test:e2e
+# Or run a single spec:
+npx playwright test tests/e2e/<spec>.spec.ts
 ```
 
-## Lighthouse CI (when configured)
+```bash
+# Run the WCAG2AA accessibility scan (subset of Playwright).
+npm run test:a11y
+```
+
+```bash
+# Run unit + E2E in sequence.
+npm test
+```
+
+## Lighthouse CI
 
 ```bash
 npx lhci autorun
@@ -55,15 +66,8 @@ npx lhci autorun
 # In CI this runs against the built output via lhci's static-dist or a started server.
 ```
 
-## Pa11y (accessibility, when configured)
-
-```bash
-npx pa11y-ci
-# Reads .pa11yci.json for URLs and config
-```
-
 ## Notes
 
-- Build is the strongest functional gate in this repo because there are no runtime tests yet
-- The Runner's targeted-test step is a no-op until a test framework lands; treat type-check + lint + build as the trifecta for now
-- Lighthouse and Pa11y commands are intended to be invoked from CI workflows, not from the Runner state directly (they need a running server / build artefact)
+- Build, type-check, lint, and the Vitest + Playwright test layers are all functional gates
+- Lighthouse is intended to be invoked from CI workflows, not from the Runner state directly (it needs a running server / build artefact)
+- Accessibility scanning runs through `@axe-core/playwright` inside the Playwright suite (`npm run test:a11y`)

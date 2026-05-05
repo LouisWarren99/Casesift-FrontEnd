@@ -23,7 +23,7 @@ CaseSift's customers are UK solicitors. They find legal-tech vendors via Google 
 | Concern | What's missing | What to add |
 |---|---|---|
 | Core Web Vitals (LCP / CLS / INP) | No automated monitoring | Lighthouse CI in GitHub Actions with budgets ≥0.9 for Performance |
-| Accessibility | No automated check | Pa11y CI or axe-core in CI; budget ≥0.9 Lighthouse a11y, WCAG2AA Pa11y level |
+| Accessibility | No automated check | `@axe-core/playwright` in CI (run via `npm run test:a11y`); budget ≥0.9 Lighthouse a11y, WCAG2AA axe-core tags |
 | Best Practices | No automated check | Lighthouse CI Best Practices ≥0.9 |
 | SEO score | No automated check | Lighthouse CI SEO ≥0.95 |
 | Structured data (JSON-LD) | None on the site | Add Organization, WebSite, ContactPoint, and (optionally) FAQPage schemas. Validate with structured-data-testing-tool or schema.org validator in CI. |

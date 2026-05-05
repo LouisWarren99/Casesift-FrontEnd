@@ -16,7 +16,7 @@ When a page or route is added/renamed/removed, verify:
 ### Workflow References
 - If a workflow file references a script or path, that script/path must exist
 - If `package.json` adds a script, the workflow that calls it must use the exact name
-- If a Lighthouse or Pa11y config references a URL, verify the URL is reachable from CI (localhost:3000 after `npm run start`, or a Vercel preview URL)
+- If a Lighthouse or axe-core spec references a URL, verify the URL is reachable from CI (localhost:3000 after `npm run start`, or a Vercel preview URL)
 
 ---
 
@@ -60,9 +60,9 @@ A new GitHub Actions workflow is incomplete unless:
 3. Path filters or branch filters match the intended trigger pattern
 4. The workflow has been syntax-validated (e.g., `actionlint` or YAML parse)
 
-### Adding a Lighthouse / Pa11y / SEO check
+### Adding a Lighthouse / axe-core / SEO check
 Incomplete unless:
-1. Config file is checked in (`lighthouserc.cjs`, `.pa11yci.json`, etc.)
+1. Config file or spec is checked in (`lighthouserc.cjs`, `tests/e2e/a11y.spec.ts`, etc.)
 2. The check is invoked from at least one CI workflow
 3. Budgets / thresholds are set so the check can FAIL — a check that always passes is dead weight
 4. The README or a docs page explains what the check does and what to do when it fails
@@ -83,14 +83,15 @@ If a section is removed from `src/app/page.tsx`:
 - Inline styles instead of Tailwind utilities (without justification)
 
 ### Probe 5 — Thin Tests / No Tests
-This repo has no test framework configured today. If a test framework is added during a run:
+This repo uses Vitest (`src/test/**/*.test.{ts,tsx}`) and Playwright (`tests/e2e/**/*.spec.ts`). For every code change:
 - Verify tests cover both happy path and at least one negative case
-- Verify any new SEO/a11y feature has a corresponding Lighthouse/Pa11y assertion or budget
+- Verify any new SEO feature has a corresponding Lighthouse budget or assertion
+- Verify any new a11y-relevant change is covered by `@axe-core/playwright` (run via `npm run test:a11y`)
 
 ### Probe 6 — Missing Test Coverage
 - New CI workflow added without an example failure mode being tested → flag
-- New page added without Lighthouse/Pa11y budget → flag
+- New page added without Lighthouse budget or axe-core a11y coverage → flag
 
 ### Probe 7 — Test Quality Upside (SUGGESTION only)
 - Lighthouse budgets are present but lenient (>0.7 thresholds for SEO/A11y) — recommend tightening to ≥0.9
-- Pa11y level is `WCAG2A` instead of `WCAG2AA` — recommend stricter level
+- axe-core tags include `WCAG2A` only instead of also `WCAG2AA` — recommend stricter level

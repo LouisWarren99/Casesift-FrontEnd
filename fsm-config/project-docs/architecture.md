@@ -44,8 +44,8 @@ Public marketing website for CaseSift (live at https://casesift.co.uk). Single-p
 - No auth (no Clerk, no OAuth — purely public marketing)
 - No database
 - No customer dashboard / app routes (`/dashboard`, `/cases`, `/settings` are explicitly disallowed in robots.ts because they live in the OTHER frontend / dashboard app)
-- No tests (Vitest/Playwright not configured yet)
-- No CI workflows yet (`.github/workflows/` doesn't exist as of 2026-04-26)
+- Tests: Vitest unit tests in `src/test/`, Playwright E2E in `tests/e2e/`, WCAG2AA accessibility scanning via `@axe-core/playwright`
+- CI: GitHub Actions workflows in `.github/workflows/` (Lighthouse, accessibility, structured-data, robots, sitemap, links, smoke, ESLint, npm audit, Playwright E2E)
 
 ## Deployment
 

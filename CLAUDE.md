@@ -46,8 +46,8 @@ The product itself (backend API, FSM engine, AI agents, customer dashboard) live
 - **Hosting:** Vercel (auto-deploy from `main`)
 - **Source layout:** `src/app/` — App Router pages, layout, robots.ts, sitemap.ts
 - **SEO baseline:** Metadata API in `layout.tsx`, robots.ts, sitemap.ts, security headers in `next.config.ts`
-- **Tests:** none configured yet (no Vitest, no Playwright)
-- **CI:** none configured yet (no `.github/workflows/`)
+- **Tests:** Vitest unit tests in `src/test/`, Playwright E2E in `tests/e2e/`, `@axe-core/playwright` for WCAG2AA
+- **CI:** GitHub Actions workflows in `.github/workflows/` (Lighthouse, accessibility, structured-data, robots, sitemap, links, Playwright E2E)
 
 ## Critical Invariants
 
@@ -68,7 +68,7 @@ The FSM kernel reads adapter and project-doc files directly from this repo at th
 - `fsm-config/project-adapters/casesift-frontend/breaker-audit.md` — XSS, security headers, dependency hygiene, supply chain
 - `fsm-config/project-adapters/casesift-frontend/file-size-limits.md` — per-pattern line limits
 - `fsm-config/project-docs/architecture.md` — repo layout, tech stack, deployment model
-- `fsm-config/project-docs/seo.md` — SEO baseline, ranking factors, Lighthouse/Pa11y targets
+- `fsm-config/project-docs/seo.md` — SEO baseline, ranking factors, Lighthouse and axe-core a11y targets
 
 Pipeline runs go to `../FSM/pipeline/casesift-frontend/run-N/` (project-namespaced under the shared FSM kernel).
 

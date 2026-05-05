@@ -24,6 +24,7 @@ import {
   Star,
   Users,
 } from "lucide-react";
+import { ContactForm } from "@/app/components/ContactForm";
 
 /* ─── Scroll-reveal hooks ─────────────────────────────────────────────────── */
 
@@ -1000,8 +1001,8 @@ export default function LandingPage() {
       {/* ── Contact / CTA ─────────────────────────────────────────────────── */}
       <section id="contact" className="border-t border-border bg-primary py-24">
         <div className="mx-auto max-w-5xl px-6">
-          <div className="grid gap-12 md:grid-cols-2 items-center">
-            {/* Left: CTA copy */}
+          <div className="grid gap-12 md:grid-cols-2 md:items-start">
+            {/* Left: CTA copy + secondary contact details */}
             <div>
               <h2 className="text-3xl font-bold text-primary-foreground md:text-4xl">
                 Ready to Transform Your Case Intake?
@@ -1026,38 +1027,40 @@ export default function LandingPage() {
                   Book a Demo
                 </a>
               </div>
-            </div>
 
-            {/* Right: contact details */}
-            <div className="space-y-5">
-              <a
-                href="mailto:info@casesift.co.uk"
-                className="flex items-center gap-3 text-primary-foreground/80 transition-colors hover:text-primary-foreground"
-              >
-                <Mail className="h-5 w-5 shrink-0" />
-                <span className="text-sm">info@casesift.co.uk</span>
-              </a>
-              <a
-                href="https://calendly.com/casesift"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-primary-foreground/80 transition-colors hover:text-primary-foreground"
-              >
-                <Calendar className="h-5 w-5 shrink-0" />
-                <span className="text-sm">Schedule a personalised demonstration</span>
-              </a>
-              <div className="flex items-center gap-3 text-primary-foreground/80">
-                <Building2 className="h-5 w-5 shrink-0" />
-                <div>
-                  <p className="text-sm font-semibold text-primary-foreground">
-                    CaseSift Ltd
-                  </p>
-                  <p className="text-xs text-primary-foreground/70">
-                    Registered in England &amp; Wales
-                  </p>
+              <div className="mt-10 space-y-5">
+                <a
+                  href="mailto:info@casesift.co.uk"
+                  className="flex items-center gap-3 text-primary-foreground/80 transition-colors hover:text-primary-foreground"
+                >
+                  <Mail className="h-5 w-5 shrink-0" />
+                  <span className="text-sm">info@casesift.co.uk</span>
+                </a>
+                <a
+                  href="https://calendly.com/casesift"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-primary-foreground/80 transition-colors hover:text-primary-foreground"
+                >
+                  <Calendar className="h-5 w-5 shrink-0" />
+                  <span className="text-sm">Schedule a personalised demonstration</span>
+                </a>
+                <div className="flex items-center gap-3 text-primary-foreground/80">
+                  <Building2 className="h-5 w-5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-primary-foreground">
+                      CaseSift Ltd
+                    </p>
+                    <p className="text-xs text-primary-foreground/70">
+                      Registered in England &amp; Wales
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Right: contact form */}
+            <ContactForm />
           </div>
         </div>
       </section>

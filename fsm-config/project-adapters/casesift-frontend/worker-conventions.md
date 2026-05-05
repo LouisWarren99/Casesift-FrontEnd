@@ -26,7 +26,7 @@
 | Reusable utilities | `src/lib/{name}.ts` | (none exist yet) |
 | CI workflows | `.github/workflows/{name}.yml` | GitHub Actions |
 | Lighthouse config | `.lighthouserc.json` or `lighthouserc.cjs` | Lighthouse CI budgets |
-| Pa11y config | `.pa11yci.json` | Accessibility scanner config |
+| Axe a11y spec | `tests/e2e/a11y.spec.ts` | WCAG2AA scan via `@axe-core/playwright` |
 | Playwright (if added) | `playwright.config.ts` + `tests/e2e/` | E2E browser tests |
 | Vitest (if added) | `vitest.config.ts` + `src/**/*.test.{ts,tsx}` | Unit tests |
 

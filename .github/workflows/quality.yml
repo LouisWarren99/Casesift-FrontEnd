@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   quality:
-    name: Lighthouse, Pa11y, JSON-LD, robots, sitemap, links
+    name: Lighthouse, Axe a11y, JSON-LD, robots, sitemap, links
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -32,14 +32,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Surfaces HIGH-severity advisories as a CI warning.
-      # continue-on-error: true — accepted while four known HIGH advisories in devDependencies
-      # are unresolved (lodash, semver, pa11y, pa11y-ci — all devDep/CI-only, no user-input surface).
-      # See README § Known Dependency Advisories for blast-radius justification.
-      # TODO: flip to continue-on-error: false once pa11y-ci is upgraded or replaced.
+      # Hard gate: any HIGH advisory fails the run.
+      # All previously-known HIGH advisories were resolved by run-3 (pa11y-ci removed,
+      # replaced by @axe-core/playwright with a clean dep tree).
       - name: Dependency audit (npm audit --audit-level=high)
         run: npm audit --audit-level=high
-        continue-on-error: true
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
       - name: Build
         run: npm run build
@@ -55,8 +55,8 @@ jobs:
       - name: Lighthouse CI (mobile — SEO-critical, Google mobile-first)
         run: npm run lhci:mobile
 
-      - name: Pa11y accessibility scan (WCAG2AA)
-        run: npm run pa11y
+      - name: Axe accessibility scan (WCAG2AA via Playwright)
+        run: npm run test:a11y
 
       - name: Validate structured data (JSON-LD)
         run: npm run validate:structured-data

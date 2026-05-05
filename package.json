@@ -11,7 +11,7 @@
     "format:check": "prettier --check .",
     "lhci": "lhci autorun",
     "lhci:mobile": "lhci autorun --config=lighthouserc.mobile.cjs",
-    "pa11y": "pa11y-ci",
+    "test:a11y": "playwright test tests/e2e/a11y.spec.ts",
     "validate:structured-data": "node scripts/validate-structured-data.mjs",
     "validate:robots": "node scripts/validate-robots.mjs",
     "validate:sitemap": "node scripts/validate-sitemap.mjs",
@@ -27,9 +27,12 @@
     "next": "^15.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sonner": "^1.7.0"
+    "resend": "^6.12.2",
+    "sonner": "^1.7.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@lhci/cli": "^0.14.0",
     "@playwright/test": "^1.48.0",
     "@tailwindcss/postcss": "^4.0.0",
@@ -42,7 +45,6 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "^15.3.0",
     "jsdom": "^25.0.0",
-    "pa11y-ci": "^3.1.0",
     "prettier": "^3.4.0",
     "schema-dts": "^1.1.5",
     "tailwindcss": "^4.0.0",

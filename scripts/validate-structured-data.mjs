@@ -62,7 +62,7 @@ async function fetchPageHtml() {
  * @param {string} html
  * @returns {string[]} Array of raw JSON strings.
  */
-function extractJsonLdBlocks(html) {
+export function extractJsonLdBlocks(html) {
   const pattern = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   const blocks = [];
   let match;
@@ -78,7 +78,7 @@ function extractJsonLdBlocks(html) {
  * @param {number} index
  * @returns {string[]} Array of error messages (empty = valid).
  */
-function validateSchemaObject(schema, index) {
+export function validateSchemaObject(schema, index) {
   const errors = [];
   const label = `Schema[${index}]`;
 
@@ -118,7 +118,7 @@ function validateSchemaObject(schema, index) {
  * @param {Record<string, unknown>[]} parsedSchemas
  * @returns {string[]} Array of error messages (empty = valid).
  */
-function validateCrossReferences(parsedSchemas) {
+export function validateCrossReferences(parsedSchemas) {
   const errors = [];
 
   /** @type {Record<string, Record<string, unknown>>} */
@@ -253,4 +253,10 @@ async function main() {
   console.log(`  @types found: ${foundTypes.join(", ")}`);
 }
 
-main();
+// Only run when executed directly (not when imported for testing).
+const isDirectRun =
+  process.argv[1] &&
+  import.meta.url.includes(process.argv[1].replace(/\\/g, "/").split("/").pop());
+if (isDirectRun) {
+  main();
+}

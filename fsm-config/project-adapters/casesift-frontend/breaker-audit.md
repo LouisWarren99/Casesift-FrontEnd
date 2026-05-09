@@ -18,9 +18,12 @@ The current `next.config.ts` sets:
 - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` ✓
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()` ✓
 
-**Missing (audit on every relevant change):**
-- `Content-Security-Policy` — currently absent. Adding one is a non-trivial change because Next.js App Router uses inline scripts; a strict CSP would need nonces. Flag if CSP is added without nonce handling.
-- If forms or third-party embeds are added, the header surface MUST be reviewed (CSP, frame-ancestors, etc.)
+**Present (added run-2):**
+- `Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'` ✓ — pragmatic CSP using `'unsafe-inline'` to accommodate Next.js App Router inline hydration scripts and potential inline styles. Nonce-based strict CSP (which would eliminate `'unsafe-inline'`) requires Next.js middleware + dynamic rendering conversion and is deferred to a future run.
+
+**Audit on every relevant change:**
+- If external scripts (analytics, chat widgets), external fonts (Google Fonts), or external image sources are added, the CSP directives (`script-src`, `font-src`, `img-src`, `connect-src`) MUST be updated to include the new origins.
+- If forms or third-party embeds are added, the header surface MUST be reviewed (CSP `frame-ancestors`, `form-action`, etc.)
 
 ## 3. SEO / Crawl Manipulation Risks
 

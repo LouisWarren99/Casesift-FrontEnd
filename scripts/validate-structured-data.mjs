@@ -6,7 +6,10 @@
  *   1. JSON parses without error.
  *   2. Each blob has @context and @type.
  *   3. The set of @type values includes Organization, WebSite, and WebPage.
- *   4. Each schema has the minimum required fields per schema.org.
+ *   4. Each schema has the minimum required fields per schema.org (including @id).
+ *   5. @id values use the expected fragment suffix convention (#organization, #website, #webpage).
+ *   6. Cross-references are consistent (WebSite.publisher["@id"] === Organization["@id"],
+ *      WebPage.isPartOf["@id"] === WebSite["@id"]).
  *
  * Usage (with server running): npm run validate:structured-data
  * Exit 0 = pass, Exit 1 = failure with human-readable message.
@@ -16,11 +19,22 @@ const TARGET_URL = "http://localhost:3000/";
 const FETCH_TIMEOUT_MS = 30_000;
 const REQUIRED_SCHEMA_TYPES = ["Organization", "WebSite", "WebPage"];
 
-/** Minimum required fields per @type (schema.org MinimalRequiredProperties). */
+/** Minimum required fields per @type (schema.org MinimalRequiredProperties + @id convention). */
 const MINIMUM_REQUIRED_FIELDS = {
-  Organization: ["name", "url"],
-  WebSite: ["name", "url"],
-  WebPage: ["name", "url"],
+  Organization: ["name", "url", "@id"],
+  WebSite: ["name", "url", "@id"],
+  WebPage: ["name", "url", "@id"],
+};
+
+/**
+ * Expected @id fragment suffix per @type (convention established in layout-schemas.ts).
+ * The validator checks the fragment suffix, not the full URL prefix, so it remains
+ * resilient to hostname changes (e.g. staging vs production).
+ */
+const EXPECTED_ID_SUFFIX = {
+  Organization: "#organization",
+  WebSite: "#website",
+  WebPage: "#webpage",
 };
 
 /**
@@ -92,6 +106,90 @@ function validateSchemaObject(schema, index) {
   return errors;
 }
 
+/**
+ * Validates @id field values and cross-reference consistency across all parsed schemas.
+ *
+ * Checks performed:
+ *  1. Each schema with a known @type has an @id string value.
+ *  2. @id values end with the expected fragment suffix per EXPECTED_ID_SUFFIX.
+ *  3. WebSite.publisher["@id"] === Organization["@id"] (WebSite published by Organization).
+ *  4. WebPage.isPartOf["@id"] === WebSite["@id"] (WebPage belongs to WebSite).
+ *
+ * @param {Record<string, unknown>[]} parsedSchemas
+ * @returns {string[]} Array of error messages (empty = valid).
+ */
+function validateCrossReferences(parsedSchemas) {
+  const errors = [];
+
+  /** @type {Record<string, Record<string, unknown>>} */
+  const schemasByType = {};
+  for (const schema of parsedSchemas) {
+    const schemaType = schema["@type"];
+    if (typeof schemaType === "string" && EXPECTED_ID_SUFFIX[schemaType] !== undefined) {
+      schemasByType[schemaType] = schema;
+    }
+  }
+
+  // Check @id presence and fragment suffix for each known type.
+  for (const [schemaType, schema] of Object.entries(schemasByType)) {
+    const idValue = schema["@id"];
+    if (typeof idValue !== "string" || idValue.length === 0) {
+      errors.push(`${schemaType}: "@id" must be a non-empty string`);
+      continue;
+    }
+    const expectedSuffix = EXPECTED_ID_SUFFIX[schemaType];
+    if (!idValue.endsWith(expectedSuffix)) {
+      errors.push(
+        `${schemaType}: "@id" value "${idValue}" does not end with expected suffix "${expectedSuffix}"`,
+      );
+    }
+  }
+
+  // Cross-reference: WebSite.publisher["@id"] must equal Organization["@id"].
+  const organization = schemasByType["Organization"];
+  const webSite = schemasByType["WebSite"];
+  const webPage = schemasByType["WebPage"];
+
+  if (organization && webSite) {
+    const orgId = organization["@id"];
+    const publisher = webSite["publisher"];
+    if (
+      typeof publisher !== "object" ||
+      publisher === null ||
+      typeof publisher["@id"] !== "string"
+    ) {
+      errors.push(
+        'WebSite: "publisher" must be an object with an "@id" string field for cross-reference validation',
+      );
+    } else if (publisher["@id"] !== orgId) {
+      errors.push(
+        `WebSite.publisher["@id"] ("${publisher["@id"]}") does not match Organization["@id"] ("${orgId}") — cross-reference inconsistent`,
+      );
+    }
+  }
+
+  // Cross-reference: WebPage.isPartOf["@id"] must equal WebSite["@id"].
+  if (webSite && webPage) {
+    const webSiteId = webSite["@id"];
+    const isPartOf = webPage["isPartOf"];
+    if (
+      typeof isPartOf !== "object" ||
+      isPartOf === null ||
+      typeof isPartOf["@id"] !== "string"
+    ) {
+      errors.push(
+        'WebPage: "isPartOf" must be an object with an "@id" string field for cross-reference validation',
+      );
+    } else if (isPartOf["@id"] !== webSiteId) {
+      errors.push(
+        `WebPage.isPartOf["@id"] ("${isPartOf["@id"]}") does not match WebSite["@id"] ("${webSiteId}") — cross-reference inconsistent`,
+      );
+    }
+  }
+
+  return errors;
+}
+
 async function main() {
   console.log(`Fetching ${TARGET_URL}...`);
   let html;
@@ -139,6 +237,9 @@ async function main() {
       allErrors.push(`Missing required @type "${requiredType}" — expected Organization, WebSite, and WebPage`);
     }
   }
+
+  // Validate @id field values and cross-reference consistency.
+  allErrors.push(...validateCrossReferences(parsedSchemas));
 
   if (allErrors.length > 0) {
     console.error("FAIL: Structured data validation errors:");

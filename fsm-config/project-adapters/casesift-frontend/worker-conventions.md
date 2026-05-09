@@ -53,7 +53,7 @@
 - Open Graph image (`og-image.png`) should live at `public/og-image.png` and be referenced in `metadata.openGraph.images` — verify it's set when adding new pages
 - Use `<Image>` from `next/image` for non-SVG images so Next can optimise them and emit width/height (avoids CLS penalty)
 - Heading hierarchy: exactly one `<h1>` per page; subsequent sections use `<h2>` then `<h3>` — never skip levels (Lighthouse SEO + a11y)
-- Add structured data (JSON-LD) for `Organization`, `WebSite`, and `WebPage` at minimum; use `Script` from `next/script` with `type="application/ld+json"` and `strategy="afterInteractive"`
+- Add structured data (JSON-LD) for `Organization`, `WebSite`, and `WebPage` at minimum; define typed schema objects (using `schema-dts` types with `@id` cross-references) in `src/app/layout-schemas.ts` and render them as plain `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />` tags in the root Server Component (`src/app/layout.tsx`). Do NOT use `Script` from `next/script` -- the `afterInteractive` strategy is fragile with JSON-LD data blocks.
 
 ### Accessibility (ranking factor + legal compliance)
 - Every interactive element MUST have an accessible name (text content, `aria-label`, or `aria-labelledby`)
